@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .pageTitle }} | NAWST</title>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.min.js"
+        integrity="sha512-mOiNIzRB+4/INX75lwv3+eSG+Sih4wQy+qS/+0mHkk2MjHZW6ABGN6eQD1MoV5Tv9KG+G3UAMy1vW3fk5goVXA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+<div class="chart-container">
+    <canvas id="myBarChart"></canvas>
+  </div>
+
+  <script>
+    // Get the canvas context
+    const ctx = document.getElementById('myBarChart').getContext('2d');
+
+    // Create the bar chart
+    const myBarChart = new Chart(ctx, {
+      type: 'line', // Specifies chart type
+      data: {
+        labels: [{{ .chartLabels}}],
+        datasets: [{
+          label: '{{ .chartValueTitle}}',
+          data: [{{ .chartValues}}],
+          backgroundColor: [
+            'rgba(54, 162, 235, 0.7)',
+            'rgba(75, 192, 192, 0.7)',
+            'rgba(255, 206, 86, 0.7)',
+            'rgba(255, 99, 132, 0.7)',
+            'rgba(153, 102, 255, 0.7)',
+            'rgba(255, 159, 64, 0.7)'
+          ],
+          borderColor: [
+            'rgba(54, 162, 235, 1)',
+            'rgba(75, 192, 192, 1)',
+            'rgba(255, 206, 86, 1)',
+            'rgba(255, 99, 132, 1)',
+            'rgba(153, 102, 255, 1)',
+            'rgba(255, 159, 64, 1)'
+          ],
+          borderWidth: 1.5,
+          borderRadius: 6 // Rounded bar corners
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top'
+          },
+          title: {
+            display: true,
+            text: '{{ .chartTitle}}',
+            font: {
+              size: 18
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: function(value) {
+                return '$' + value.toLocaleString(); // Format as currency
+              }
+            }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>

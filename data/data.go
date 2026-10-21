@@ -3,25 +3,25 @@ package data
 import (
 	"io"
 	"log"
+	"time"
+
+	"niceygy.net/nawst/panicHandler"
 )
 
-var LoadedEntries []WebViewEntry
+// var LoadedEntries []WebViewEntry
 
 func CreateNewEntry(body io.ReadCloser) {
 	new := WebViewEntry{}
 	new.FromJSONBody(body)
-	LoadedEntries = append(LoadedEntries, new)
-	log.Printf("Got new entry:\nDomain=%s\nPath=%s, Country=%s, HasVisitedBefore=%t", new.domain, new.path, new.country, new.hasVisitedBefore)
-}
+	// LoadedEntries = append(LoadedEntries, new)
+	log.Printf("Got new entry:\nDomain=%s\nPath=%s\nCountry=%s\nHasVisitedBefore=%t", new.Domain, new.Path, new.Country, new.HasVisitedBefore)
+	db, dbCloser := OpenDatabase()
 
-func LoadEntriesForDomain(domain string) []WebViewEntry {
-	var result []WebViewEntry
+	defer dbCloser()
 
-	for _, e := range LoadedEntries {
-		if e.domain == domain {
-			result = append(result, e)
-		}
-	}
+	_, err := db.Exec("INSERT INTO visits (domain, path, dateTime, visitedBefore, country) VALUES (?, ?, ?, ?, ?)",
+		new.Domain, new.Path, new.DateTime.Format(time.RFC1123), new.HasVisitedBefore, new.Country,
+	)
 
-	return result
+	panicHandler.PanicIfErr("CreateNewEntry", err)
 }

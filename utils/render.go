@@ -1,6 +1,7 @@
-package server
+package utils
 
 import (
+	"embed"
 	"log"
 	"text/template"
 )
@@ -14,8 +15,8 @@ func (w *bufferWriter) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-func RenderWidget() string {
-	tmpl, err := template.ParseFS(JSWidgetContent, "widget.js") //template.ParseFiles(filename)
+func RenderTemplate(vfs embed.FS, filename string, renderData map[string]any) string {
+	tmpl, err := template.ParseFS(vfs, filename)
 	if err != nil {
 		// return "", err
 		log.Println("ERR" + err.Error())
@@ -25,10 +26,7 @@ func RenderWidget() string {
 	var buf []byte
 	w := &bufferWriter{&buf}
 
-	var templateData map[string]any = map[string]any{}
-	templateData["scriptIngestURL"] = "http://localhost:8089/script/ingest"
-
-	if err := tmpl.Execute(w, templateData); err != nil {
+	if err := tmpl.Execute(w, renderData); err != nil {
 		log.Println("ERR" + err.Error())
 		return "Render ERR" + err.Error()
 	}

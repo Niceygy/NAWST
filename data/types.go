@@ -13,39 +13,40 @@ import (
 )
 
 type WebViewEntry struct {
-	domain           string
-	path             string
-	dateTime         time.Time
-	country          string
-	hasVisitedBefore bool
+	Domain           string
+	Path             string
+	Fingerprint      string
+	DateTime         time.Time
+	Country          string
+	HasVisitedBefore bool
 }
 
 func (w *WebViewEntry) ToString() string {
-	dateTimeString := w.dateTime.Format(time.RFC1123)
-	domainString := base64.StdEncoding.EncodeToString([]byte(w.domain))
-	pathString := base64.StdEncoding.EncodeToString([]byte(w.path))
+	dateTimeString := w.DateTime.Format(time.RFC1123)
+	domainString := base64.StdEncoding.EncodeToString([]byte(w.Domain))
+	pathString := base64.StdEncoding.EncodeToString([]byte(w.Path))
 	newVisitorString := ""
-	if w.hasVisitedBefore {
+	if w.HasVisitedBefore {
 		newVisitorString = "T"
 	} else {
 		newVisitorString = "F"
 	}
-	return fmt.Sprintf("%s,%s,%s,%s,%s\n", domainString, pathString, dateTimeString, newVisitorString, w.country)
+	return fmt.Sprintf("%s,%s,%s,%s,%s\n", domainString, pathString, dateTimeString, newVisitorString, w.Country)
 }
 
 func (w *WebViewEntry) FromString(input string) {
 	var inputParts []string = strings.Split(input, ",")
 	_domain, err := base64.StdEncoding.DecodeString(inputParts[0])
 	panicHandler.PanicIfErr("WebViewEntry.FromString", err)
-	w.domain = string(_domain)
+	w.Domain = string(_domain)
 
 	_path, err := base64.RawStdEncoding.DecodeString(inputParts[1])
 	panicHandler.PanicIfErr("WebViewEntry.FromString", err)
-	w.path = string(_path)
+	w.Path = string(_path)
 
-	w.dateTime, err = time.Parse(time.RFC1123, inputParts[2])
-	w.hasVisitedBefore = inputParts[3] == "T"
-	w.country = inputParts[4]
+	w.DateTime, err = time.Parse(time.RFC1123, inputParts[2])
+	w.HasVisitedBefore = inputParts[3] == "T"
+	w.Country = inputParts[4]
 }
 
 func (w *WebViewEntry) FromJSONBody(body io.ReadCloser) {
@@ -53,9 +54,10 @@ func (w *WebViewEntry) FromJSONBody(body io.ReadCloser) {
 	err := json.NewDecoder(body).Decode(&jsonMap)
 	godump.Dump(jsonMap, err)
 
-	w.country = GetCountryFromTZ(jsonMap["tz"].(string))
-	w.dateTime = time.Now()
-	w.domain = jsonMap["dm"].(string)
-	w.path = jsonMap["pt"].(string)
-	w.hasVisitedBefore = jsonMap["vb"].(bool)
+	w.Country = GetCountryFromTZ(jsonMap["tz"].(string))
+	w.DateTime = time.Now()
+	w.Domain = jsonMap["dm"].(string)
+	w.Path = jsonMap["pt"].(string)
+	w.HasVisitedBefore = jsonMap["vb"].(bool)
+	w.Fingerprint = jsonMap["fp"].(string)
 }
