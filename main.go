@@ -12,7 +12,7 @@ func main() {
 	data.MakeTables()
 	e := echo.New()
 
-	e.Use(middlewares.CORS("*", "https://*.niceygy.net"))
+	e.Use(middlewares.CORS("http://localhost:8080", "https://niceyyg.net", "https://*.niceygy.net"))
 	e.Use(middlewares.Gzip())
 
 	e.Any("/data/*", web.HandleWeb)
