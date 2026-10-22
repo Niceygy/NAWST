@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS pages (
 
 func OpenDatabase() (*sql.DB, func()) {
 	// DatabaseLock.Lock()
-	db, err := sql.Open("sqlite3", "db.sqlite")
+	db, err := sql.Open("sqlite3", "db/db.sqlite")
 	panicHandler.PanicIfErr("OpenDatabase", err)
 
 	dbCloser := func() {
