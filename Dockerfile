@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM debian:bookworm-slim
 # Set working directory in the container
 WORKDIR /app/
 
