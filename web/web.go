@@ -1,8 +1,10 @@
 package web
 
 import (
+	"fmt"
+	"log"
 	"strconv"
-	"time"
+	"strings"
 
 	"github.com/labstack/echo/v5"
 	"niceygy.net/nawst/data"
@@ -10,36 +12,59 @@ import (
 )
 
 func HandleWeb(c *echo.Context) error {
-	switch c.Request().RequestURI {
+	// log.Println()
+	switch c.Request().URL.Path {
 	case "/data/byTime":
+		return HandleByTime(c)
 
+	default:
+		return c.NoContent(404)
 	}
-	data.GetDataForDomain("")
-	return c.HTML(200, "")
 }
 
 func HandleByTime(c *echo.Context) error {
-	hours, err := strconv.Atoi(c.ParamOr("h", "0"))
+	day, err := strconv.Atoi(c.QueryParamOr("d", "01"))
 	panicHandler.PanicIfErr("HandleByTime", err)
 
-	days, err := strconv.Atoi(c.ParamOr("d", "0"))
+	month, err := strconv.Atoi(c.QueryParamOr("m", "01"))
 	panicHandler.PanicIfErr("HandleByTime", err)
 
-	domain := c.ParamOr("domain", "")
+	year, err := strconv.Atoi(c.QueryParamOr("m", "2026"))
+	panicHandler.PanicIfErr("HandleByTime", err)
+
+	domain := c.QueryParamOr("domain", "")
+	log.Print(c.QueryParam("domain"))
+	// c.QueryParam("domain")
 	if domain == "" {
 		return c.String(404, "Domain not found")
 	}
 
-	var oldestEntryTime time.Time = time.Now().Add(-(time.Hour * time.Duration(hours)))
-	oldestEntryTime.Add(-((time.Hour * 24) * time.Duration(days)))
+	var requestedWeekStartingDate string = fmt.Sprintf("%d-%d-%d", day, month, year)
 
-	var entries []data.WebViewEntry = data.GetDataForDomain(domain)
+	db, dbCloser := data.OpenDatabase()
+	defer dbCloser()
 
-	var wantedEntries []data.WebViewEntry = []data.WebViewEntry{}
+	rows, err := db.Query("SELECT domain, path, vists, viewers FROM pages WHERE domain = ? AND weekStarting = ?", domain, requestedWeekStartingDate)
 
-	for _, e := range entries {
-		if e.DateTime.After(oldestEntryTime) {
-			wantedEntries = append(wantedEntries, e)
-		}
+	panicHandler.PanicIfErr("HandleByTime", err)
+
+	var queryResult []data.WebViewEntry = []data.WebViewEntry{}
+
+	for rows.Next() {
+		panicHandler.PanicIfErr("HandleByTime", rows.Err())
+
+		// _row := data.WebViewEntry{}
+		// var ignored int
+		rows.Scan()
 	}
+
+	var result strings.Builder
+	fmt.Fprintf(&result, "Domain: %s\n", domain)
+	fmt.Fprintf(&result, "Total visits: %d\n", len(queryResult))
+	// fmt.Fprintf(&result, "New Users: %d\n", newUsers)
+	// fmt.Fprintf(&result, "Total visits: %d\n", totalVisits)
+
+	log.Println(result.String())
+
+	return c.String(200, result.String())
 }

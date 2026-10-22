@@ -2,6 +2,8 @@ package server
 
 import (
 	"embed"
+	"net/http"
+	"os"
 
 	"github.com/labstack/echo/v5"
 	"niceygy.net/nawst/data"
@@ -14,15 +16,15 @@ var JSWidgetText string = ""
 
 func HandleServer(c *echo.Context) error {
 	// log.Println(c.Request().RequestURI)
-	switch c.Request().RequestURI {
+	switch c.Request().URL.Path {
 	case "/script/ingest":
 		data.CreateNewEntry(c.Request().Body)
-		return c.String(200, "OK")
+		return c.NoContent(http.StatusOK)
 
 	case "/script/js":
 		if len(JSWidgetText) < 1 {
 			var renderData map[string]any = map[string]any{
-				"scriptIngestURL": "http://localhost:8089/script/ingest",
+				"scriptIngestURL": os.Getenv("PUBLIC_ENDPOINT") + "/script/ingest",
 			}
 			JSWidgetText = utils.RenderTemplate(JSWidgetContent, "widget.js", renderData)
 		}
@@ -32,6 +34,6 @@ func HandleServer(c *echo.Context) error {
 		return nil
 
 	default:
-		return c.NoContent(404)
+		return c.NoContent(http.StatusNotFound)
 	}
 }

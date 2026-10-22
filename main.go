@@ -13,6 +13,7 @@ func main() {
 	e := echo.New()
 
 	e.Use(middlewares.CORS("*", "https://*.niceygy.net"))
+	e.Use(middlewares.Gzip())
 
 	e.Any("/data/*", web.HandleWeb)
 	e.Any("/script/*", server.HandleServer)

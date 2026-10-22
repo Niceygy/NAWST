@@ -11,26 +11,33 @@ import (
 )
 
 var DatabaseLock sync.Mutex //not sure if this is needed. We will see
-
-const TABLE_STATEMENT string = `
-CREATE TABLE IF NOT EXISTS visits (
+/*CREATE TABLE IF NOT EXISTS visits (
 	key INTEGER PRIMARY KEY,
 	domain TEXT,
 	path TEXT,
-	dateTime TEXT,
-	visitedBefore BOOLEAN,
-	country TEXT,
-	fingerprint TEXT
-)`
+	visitedThisWeek BOOL,
+	visitedAtAll BOOL
+)*/
+
+const TABLE_STATEMENT string = `
+CREATE TABLE IF NOT EXISTS pages (
+	key INTEGER PRIMARY KEY,
+	domain TEXT,
+	path TEXT,
+	weekStarting TEXT,
+	visits INT,
+	viewers INT
+)
+`
 
 func OpenDatabase() (*sql.DB, func()) {
-	DatabaseLock.Lock()
+	// DatabaseLock.Lock()
 	db, err := sql.Open("sqlite3", "db.sqlite")
 	panicHandler.PanicIfErr("OpenDatabase", err)
 
 	dbCloser := func() {
 		panicHandler.PanicIfErr("dbCloser", db.Close())
-		DatabaseLock.Unlock()
+		// DatabaseLock.Unlock()
 	}
 
 	return db, dbCloser
@@ -50,7 +57,7 @@ func GetDataForDomain(domain string) []WebViewEntry {
 	db, dbCloser := OpenDatabase()
 	defer dbCloser()
 
-	rows, err := db.Query("SELECT domain, path, dateTime, visitedBefore, country, fingerprint FROM visits;")
+	rows, err := db.Query("SELECT domain, path, visitedThisWeek, visitedAtAll FROM visits;")
 	panicHandler.PanicIfErr("GetDataForDomain", err)
 
 	for rows.Next() {
@@ -58,7 +65,7 @@ func GetDataForDomain(domain string) []WebViewEntry {
 
 		var r WebViewEntry
 		var _dt string
-		if err = rows.Scan(&r.Domain, &r.Path, &_dt, &r.HasVisitedBefore, &r.Country, &r.Fingerprint); err == nil {
+		if err = rows.Scan(); err == nil {
 			r.DateTime, err = time.Parse(time.RFC1123, _dt)
 			panicHandler.PanicIfErr("GetDataForDomain", err)
 			// godump.Dump(r)
