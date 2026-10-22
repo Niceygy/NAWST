@@ -5,7 +5,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/goforj/godump"
+	"niceygy.net/nawst/panicHandler"
 )
 
 type WebViewEntry struct {
@@ -20,7 +20,8 @@ type WebViewEntry struct {
 func (w *WebViewEntry) FromJSONBody(body io.ReadCloser) {
 	jsonMap := make(map[string]any)
 	err := json.NewDecoder(body).Decode(&jsonMap)
-	godump.Dump(jsonMap, err)
+	// godump.Dump(jsonMap, err)
+	panicHandler.PanicIfErr("WebViewEntry.FromJSONBody", err)
 
 	w.Country = GetCountryFromTZ(jsonMap["tz"].(string))
 	w.DateTime = time.Now()
