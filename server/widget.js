@@ -28,14 +28,7 @@ const DateWithinLastWeek = function (dt) {
     return dt.getTime() > lastMonday.getTime();
 }
 
-if (document.readyState === "complete" || document.readyState === "interactive") {
-    console.log("WouldHaveInit")
-} else {
-    // window.addEventListener("load", initNawst);
-    console.log("WouldHaveEventListener")
-}
-
-window.onload = function () {
+const nawst = function () {
     console.log("[NAWST] Loading... Please stand by.")
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const domain = window.location.hostname;
@@ -69,4 +62,10 @@ window.onload = function () {
         })
     }).then((_) => console.log("[NAWST]: Sent\n[NAWST]: For more info, see https://niceygy.net/projects/nawst"))
     .catch((err) => console.log(`[NAWST] Response ERROR! '${err}'`))
+}
+
+if (document.readyState === "complete" || document.readyState === "interactive") {
+    nawst()
+} else {
+    window.addEventListener("load", nawst);
 }
