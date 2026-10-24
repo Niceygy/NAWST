@@ -3,11 +3,12 @@ const NOW = new Date();
 
 const GetLastVisited = function () {
     let _storedDate = window.localStorage.getItem(`${LOCALSTORAGE_PREFIX}_LastVisited`)
-    if (_storedDate) {
-        return new Date(_storedDate);
-    } else {
-        return null
-    }
+    return _storedDate == null ? new Date(_storedDate) : null
+    // if (_storedDate) {
+    //     return new Date(_storedDate);
+    // } else {
+    //     return null
+    // }
 }
 
 const SetLastVisited = function (dt) {
@@ -28,6 +29,7 @@ const DateWithinLastWeek = function (dt) {
 }
 
 window.onload = function () {
+    console.log("[NAWST] Loading... Please stand by.")
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const domain = window.location.hostname;
     const path = window.location.pathname;
@@ -35,11 +37,11 @@ window.onload = function () {
     const lastVisitedDateTime = GetLastVisited()
     const visitedThisWeek = DateWithinLastWeek(lastVisitedDateTime)
 
-    console.log(`[nawst]: tz=${timezone}`)
-    console.log(`[nawst]: domain=${domain}`)
-    console.log(`[nawst]: path=${path}`)
-    console.log(`[nawst]: lastVisit=${lastVisitedDateTime}`)
-    console.log(`[nawst]: visitedThisWeek=${visitedThisWeek}`)
+    console.log(`[NAWST]: tz=${timezone}`)
+    console.log(`[NAWST]: domain=${domain}`)
+    console.log(`[NAWST]: path=${path}`)
+    console.log(`[NAWST]: lastVisit=${lastVisitedDateTime}`)
+    console.log(`[NAWST]: visitedThisWeek=${visitedThisWeek}`)
 
     SetLastVisited(NOW)
 
@@ -47,6 +49,9 @@ window.onload = function () {
 
 
     fetch(scriptIngestURL, {
+        headers: {
+            "Content-Type": "application/json",
+        },
         method: "POST",
         body: JSON.stringify({
             tz: timezone, //timezone
@@ -56,4 +61,5 @@ window.onload = function () {
             vb: lastVisitedDateTime != null //visited at all
         })
     }).then((_) => console.log("[NAWST]: Sent\n[NAWST]: For more info, see https://niceygy.net/projects/nawst"))
+    .catch((err) => console.log(`[NAWST] Response ERROR! '${err}'`))
 }

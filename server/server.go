@@ -15,7 +15,6 @@ var JSWidgetContent embed.FS
 var JSWidgetText string = ""
 
 func HandleServer(c *echo.Context) error {
-	// log.Println(c.Request().RequestURI)
 	switch c.Request().URL.Path {
 	case "/script/ingest":
 		data.CreateNewEntry(c.Request().Body)

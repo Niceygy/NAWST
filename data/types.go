@@ -20,13 +20,29 @@ type WebViewEntry struct {
 func (w *WebViewEntry) FromJSONBody(body io.ReadCloser) {
 	jsonMap := make(map[string]any)
 	err := json.NewDecoder(body).Decode(&jsonMap)
-	// godump.Dump(jsonMap, err)
 	panicHandler.PanicIfErr("WebViewEntry.FromJSONBody", err)
 
-	w.Country = GetCountryFromTZ(jsonMap["tz"].(string))
+	if val, ok := jsonMap["tz"].(string); ok {
+		w.Country = GetCountryFromTZ(val)
+	} else {
+		w.Country = "Unknown"
+	}
+
+	if val, ok := jsonMap["dm"].(string); ok {
+		w.Domain = val
+	}
+
+	if val, ok := jsonMap["pt"].(string); ok {
+		w.Path = val
+	}
+
+	if val, ok := jsonMap["vb"].(bool); ok {
+		w.VisitedAtAll = val
+	}
+
+	if val, ok := jsonMap["lw"].(bool); ok {
+		w.VisitedInLastWeek = val
+	}
 	w.DateTime = time.Now()
-	w.Domain = jsonMap["dm"].(string)
-	w.Path = jsonMap["pt"].(string)
-	w.VisitedAtAll = jsonMap["vb"].(bool)
-	w.VisitedInLastWeek = jsonMap["lw"].(bool)
+
 }

@@ -1,7 +1,6 @@
 package data
 
 import (
-	"fmt"
 	"io"
 	"time"
 
@@ -31,7 +30,7 @@ func CreateNewEntry(body io.ReadCloser) {
 
 	var hasRow bool = rows > 0
 
-	fmt.Printf("HasRow=%t", hasRow)
+	// fmt.Printf("HasRow=%t", hasRow)
 	var err error
 
 	if hasRow {
