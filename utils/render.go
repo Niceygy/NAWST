@@ -18,7 +18,6 @@ func (w *bufferWriter) Write(p []byte) (int, error) {
 func RenderTemplate(vfs embed.FS, filename string, renderData map[string]any) string {
 	tmpl, err := template.ParseFS(vfs, filename)
 	if err != nil {
-		// return "", err
 		log.Println("ERR" + err.Error())
 		return "Render ERR" + err.Error()
 	}

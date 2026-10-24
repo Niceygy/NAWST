@@ -4,15 +4,6 @@ const NOW = new Date();
 const GetLastVisited = function () {
     let _storedDate = window.localStorage.getItem(`${LOCALSTORAGE_PREFIX}_LastVisited`)
     return _storedDate == null ? new Date(_storedDate) : null
-    // if (_storedDate) {
-    //     return new Date(_storedDate);
-    // } else {
-    //     return null
-    // }
-}
-
-const SetLastVisited = function (dt) {
-    window.localStorage.setItem(`${LOCALSTORAGE_PREFIX}_LastVisited`, dt.toISOString());
 }
 
 const DateWithinLastWeek = function (dt) {
@@ -37,13 +28,7 @@ const nawst = function () {
     const lastVisitedDateTime = GetLastVisited()
     const visitedThisWeek = DateWithinLastWeek(lastVisitedDateTime)
 
-    console.log(`[NAWST]: tz=${timezone}`)
-    console.log(`[NAWST]: domain=${domain}`)
-    console.log(`[NAWST]: path=${path}`)
-    console.log(`[NAWST]: lastVisit=${lastVisitedDateTime}`)
-    console.log(`[NAWST]: visitedThisWeek=${visitedThisWeek}`)
-
-    SetLastVisited(NOW)
+    window.localStorage.setItem(`${LOCALSTORAGE_PREFIX}_LastVisited`, NOW.toISOString());
 
     const scriptIngestURL = "{{ .scriptIngestURL }}";
 

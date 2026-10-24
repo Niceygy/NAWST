@@ -1,70 +1,94 @@
 package web
 
 import (
-	"fmt"
-	"log"
-	"strconv"
-	"strings"
+	"encoding/json/v2"
+	"net/http"
+	"os"
+	"time"
 
 	"github.com/labstack/echo/v5"
 	"niceygy.net/nawst/data"
 	"niceygy.net/nawst/panicHandler"
 )
 
+type ByTimeResult struct {
+	Path   string
+	Visits int
+}
+
+func IsAuthorised(c *echo.Context) bool {
+	return c.Request().Header.Get("Authorisation") == os.Getenv("API_PASSWORD")
+}
+
 func HandleWeb(c *echo.Context) error {
-	// log.Println()
+
+	if !IsAuthorised(c) {
+		return c.String(http.StatusUnauthorized, "Bad Authorisation Password")
+	}
+
 	switch c.Request().URL.Path {
-	case "/data/byTime":
-		return HandleByTime(c)
+	case "/data/lastWeek":
+		return HandleLastWeek(c)
 
 	default:
 		return c.NoContent(404)
 	}
 }
 
-func HandleByTime(c *echo.Context) error {
-	day, err := strconv.Atoi(c.QueryParamOr("d", "01"))
-	panicHandler.PanicIfErr("HandleByTime", err)
+func GetLastMonday() time.Time {
+	var result time.Time = time.Now()
 
-	month, err := strconv.Atoi(c.QueryParamOr("m", "01"))
-	panicHandler.PanicIfErr("HandleByTime", err)
+	for result.Weekday() != time.Monday {
+		result = result.Add(time.Hour * -24)
+	}
 
-	year, err := strconv.Atoi(c.QueryParamOr("m", "2026"))
-	panicHandler.PanicIfErr("HandleByTime", err)
+	return result
+}
+
+func HandleLastWeek(c *echo.Context) error {
+	var lastMon time.Time = GetLastMonday()
 
 	domain := c.QueryParamOr("domain", "")
-	log.Print(c.QueryParam("domain"))
-	// c.QueryParam("domain")
 	if domain == "" {
 		return c.String(404, "Domain not found")
 	}
 
-	var requestedWeekStartingDate string = fmt.Sprintf("%d-%d-%d", day, month, year)
+	var requestedWeekStartingDate string = lastMon.Format(time.DateOnly)
+	var todayDate string = time.Now().Format(time.DateOnly)
 
 	db, dbCloser := data.OpenDatabase()
 	defer dbCloser()
 
-	rows, err := db.Query("SELECT domain, path, vists, viewers FROM pages WHERE domain = ? AND weekStarting = ?", domain, requestedWeekStartingDate)
+	rows, err := db.Query("SELECT path, visits FROM pages WHERE domain = ? AND weekStarting = ? ORDER BY visits DESC;", domain, requestedWeekStartingDate)
 
 	panicHandler.PanicIfErr("HandleByTime", err)
 
-	var queryResult []data.WebViewEntry = []data.WebViewEntry{}
+	var queryResult []ByTimeResult = []ByTimeResult{}
+	var totalVisits int = 0
 
 	for rows.Next() {
 		panicHandler.PanicIfErr("HandleByTime", rows.Err())
 
-		// _row := data.WebViewEntry{}
-		// var ignored int
-		rows.Scan()
+		var path string
+		var visits int
+		rows.Scan(&path, &visits)
+
+		totalVisits += visits
+		queryResult = append(queryResult, ByTimeResult{
+			Path:   path,
+			Visits: visits,
+		})
 	}
 
-	var result strings.Builder
-	fmt.Fprintf(&result, "Domain: %s\n", domain)
-	fmt.Fprintf(&result, "Total visits: %d\n", len(queryResult))
-	// fmt.Fprintf(&result, "New Users: %d\n", newUsers)
-	// fmt.Fprintf(&result, "Total visits: %d\n", totalVisits)
+	var jResult map[string]any = map[string]any{
+		"domain":      domain,
+		"from":        requestedWeekStartingDate,
+		"to":          todayDate,
+		"entries":     len(queryResult),
+		"totalVisits": totalVisits,
+		"visits":      queryResult,
+	}
+	jsonData, err := json.Marshal(jResult, json.DefaultOptionsV2())
 
-	log.Println(result.String())
-
-	return c.String(200, result.String())
+	return c.String(200, string(jsonData))
 }
