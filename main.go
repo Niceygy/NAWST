@@ -18,6 +18,7 @@ func LoadAllowedOrigins() []string {
 		log.Panicf("Expected env CORS_ALLOWED to be a CSV string. Got '%s' instead", origins)
 	}
 	var originsList []string = strings.Split(origins, ",")
+	log.Printf("Loaded allowed origins: %s", origins)
 	return originsList
 }
 
