@@ -28,6 +28,13 @@ const DateWithinLastWeek = function (dt) {
     return dt.getTime() > lastMonday.getTime();
 }
 
+if (document.readyState === "complete" || document.readyState === "interactive") {
+    console.log("WouldHaveInit")
+} else {
+    // window.addEventListener("load", initNawst);
+    console.log("WouldHaveEventListener")
+}
+
 window.onload = function () {
     console.log("[NAWST] Loading... Please stand by.")
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
