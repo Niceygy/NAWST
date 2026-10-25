@@ -36,13 +36,13 @@ func (w *WebViewEntry) FromJSONBody(body io.ReadCloser) {
 		w.Path = val
 	}
 
-	if val, ok := jsonMap["vb"].(bool); ok {
-		w.VisitedAtAll = val
-	}
+	// if val, ok := jsonMap["vb"].(bool); ok {
+	w.VisitedAtAll = false
+	// }
 
-	if val, ok := jsonMap["lw"].(bool); ok {
-		w.VisitedInLastWeek = val
-	}
+	// if val, ok := jsonMap["lw"].(bool); ok {
+	w.VisitedInLastWeek = false
+	// }
 	w.DateTime = time.Now()
 
 }

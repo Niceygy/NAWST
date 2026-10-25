@@ -21,7 +21,6 @@ func IsAuthorised(c *echo.Context) bool {
 }
 
 func HandleWeb(c *echo.Context) error {
-
 	if !IsAuthorised(c) {
 		return c.String(http.StatusUnauthorized, "Bad Authorisation Password")
 	}
